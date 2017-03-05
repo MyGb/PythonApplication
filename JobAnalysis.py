@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 import requests
-from sqlalchemy import Column, String,Integer,create_engine
+from sqlalchemy import Column, String,Integer,Text,create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -29,7 +29,7 @@ Base = declarative_base()
 class Job(Base):
     __tablename__ = 'job'
     id = Column(Integer, primary_key=True,autoincrement=True)
-    positionName = Column(String(18))
+    positionName = Column(Text,)
     salary = Column(String(10))
     workYear = Column(String(10))
     education = Column(String(10))
@@ -63,20 +63,20 @@ def requestContentByPost(formData,queryParameters):
 	return content
 
 def dictToObject(jobDict):
-	positionName = jobDict["positionName"].strip()
-	salary = jobDict["salary"].strip()
-	workYear = jobDict["workYear"].strip()
-	education = jobDict["education"].strip()
-	industryField = jobDict["industryField"].strip()
-	companyShortName = jobDict["companyShortName"].strip()
-	companyFullName = jobDict["companyFullName"].strip()
-	city = jobDict["city"].strip()
-	district = jobDict["district"].strip()
+	positionName = jobDict["positionName"]
+	salary = jobDict["salary"]
+	workYear = jobDict["workYear"]
+	education = jobDict["education"]
+	industryField = jobDict["industryField"]
+	companyShortName = jobDict["companyShortName"]
+	companyFullName = jobDict["companyFullName"]
+	city = jobDict["city"]
+	district = jobDict["district"]
 	businessZones = ""
 	if jobDict["businessZones"]:
 		for bz in jobDict["businessZones"]:
 			businessZones = businessZones + bz.strip() + "/"
-	financeStage = jobDict["financeStage"].strip()
+	financeStage = jobDict["financeStage"]
 	companyLabelList = ""
 	if jobDict["companyLabelList"]:
 		for label in jobDict["companyLabelList"]:
@@ -119,11 +119,11 @@ def handleResult(result):
 
 if __name__=="__main__":
 	#result = requestContentByGet("https://www.lagou.com/jobs/list_Android?px=default&city=重庆",headers)
-	#cities = ("北京","上海","深圳","杭州","武汉","重庆")
-	#for city in cities:
-	queryParameters = {"px":"default","city":"重庆","needAddtionalResult":"false"}
-	formData = {"first":"false","pn":"1","kd":"Python"}
-	result = requestContentByPost(formData,queryParameters)
-	result = result["content"]["positionResult"]["result"]
-	handleResult(result)
+	cities = ("北京","上海","深圳","杭州","武汉","重庆")
+	for city in cities:
+		queryParameters = {"px":"default","city":city,"needAddtionalResult":"false"}
+		formData = {"first":"false","pn":"1","kd":"Python"}
+		result = requestContentByPost(formData,queryParameters)
+		handleData = result["content"]["positionResult"]["result"]
+		handleResult(handleData)
 
