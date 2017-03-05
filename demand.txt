@@ -1,0 +1,16 @@
+﻿输入职位，根据返回的信息分析该职位在各城市的情况(数量,年限,行业),并展示每个职位的基本信息。
+
+需要收集的字段：
+	岗位名称：positionName
+	薪资：salary
+	工作经验：workYear
+	学历：education
+	行业：industryField
+	公司名称：companyShortName
+	公司全名：companyFullName
+	公司所在城市：city
+	公司所在城市地区：district
+	公司具体地址：businessZones
+	公司规模：financeStage
+	职位诱惑：companyLabelList
+
