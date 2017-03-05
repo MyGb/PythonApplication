@@ -57,6 +57,7 @@ def requestContentByPost(formData,queryParameters):
 	"""通过Post方式请求内容"""
 	try:
 		req = requests.post(url,headers=headers,params=queryParameters,data=formData)
+		#print(req.text)
 		content = req.json()
 	except RequestException as e:
 		pass
@@ -119,11 +120,14 @@ def handleResult(result):
 
 if __name__=="__main__":
 	#result = requestContentByGet("https://www.lagou.com/jobs/list_Android?px=default&city=重庆",headers)
-	cities = ("北京","上海","深圳","杭州","武汉","重庆")
+	#cities = ("北京","上海","深圳","杭州","武汉","重庆")
+	cities = ("北京","重庆")
 	for city in cities:
 		queryParameters = {"px":"default","city":city,"needAddtionalResult":"false"}
 		formData = {"first":"false","pn":"1","kd":"Python"}
 		result = requestContentByPost(formData,queryParameters)
 		handleData = result["content"]["positionResult"]["result"]
+		print(result["content"]["positionResult"]["totalCount"])#总数据条数
+		print(result["content"]["positionResult"]["resultSize"])#当前显示多少数据条数
 		handleResult(handleData)
 
