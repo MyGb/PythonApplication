@@ -2,9 +2,10 @@
 #-*- coding: utf-8 -*-
 import requests
 import threading
-from sqlalchemy import Column, String,Integer,Text,create_engine
+from sqlalchemy import Column, String,Text,Integer,create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+
 """
 职位分析
 请求地址：
@@ -20,8 +21,8 @@ headers = {
 		"Cookie":"LGUID=20151023224909-37979b56-7995-11e5-8ef1-5254005c3644; tencentSig=8667215872; user_trace_token=20170212164900-02a892dae24b4db6aa76ba88a355ced8; index_location_city=%E4%B8%8A%E6%B5%B7; JSESSIONID=13EFFA3ADA58F50C292815348A720B43; _gat=1; PRE_UTM=; PRE_HOST=; PRE_SITE=; PRE_LAND=https%3A%2F%2Fwww.lagou.com%2F; TG-TRACK-CODE=search_code; SEARCH_ID=087fc7d565514b11af6390452ebbdf7d; _ga=GA1.2.689182724.1445611739; Hm_lvt_4233e74dff0ae5bd0a3d81c6ccf756e6=1486889385,1486889581,1488615828,1488694233; Hm_lpvt_4233e74dff0ae5bd0a3d81c6ccf756e6=1488694766; LGSID=20170305140943-531ce896-016a-11e7-b18c-525400f775ce; LGRID=20170305141835-908ea2b3-016b-11e7-91ba-5254005c3644",
 		"Host":"www.lagou.com",
 		"Upgrade-Insecure-Requests":"1",
-		"User-Agent":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36"
-	}
+		"User-Agent":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36"}
+
 url = "https://www.lagou.com/jobs/positionAjax.json"
 
 Base = declarative_base()
@@ -84,15 +85,6 @@ def dictToObject(jobDict):
 				companyLabelList = companyLabelList)
 	return job
 
-def requestContentByGet():
-	"""通过Get方式请求内容"""
-	try:
-		req = requests.get(url,headers=headers)
-		content = req.text
-	except RequestException as e:
-		print(e)
-	return content
-
 def requestContentByPost(formData,queryParameters):
 	"""通过Post方式请求内容"""
 	try:
@@ -121,19 +113,37 @@ def handleResult(result):
 		print(e)
 	finally:
 		session.close()
-	
-def startWork(formData,queryParameters):
+
+def work(formData,queryParameters):
 	result = requestContentByPost(formData,queryParameters)
 	handleData = result["content"]["positionResult"]["result"]
-	handleResult(handleData)
+	thread = threading.Thread(target=handleResult,args=(handleData,))
+	thread.start()
+	return result
+	
+def startWork(formData,queryParameters):
+	result = work(formData,queryParameters)
+	totalCount = result["content"]["positionResult"]["totalCount"] #总记录条数
+	resultSize = result["content"]["positionResult"]["resultSize"] #每页显示数
+	if totalCount == resultSize:
+		return
+	page = totalCount // resultSize
+	if totalCount % resultSize != 0:
+		page = page + 1
+	for pn in range(2,page+1):
+		tempFormData = {"first":"false","pn":str(pn),"kd":"Python"}
+		thread = threading.Thread(target=work,args=(tempFormData,queryParameters))
+		thread.start()
 
 
 
 if __name__=="__main__":
-	cities = ("北京","重庆")
+	cities = ("重庆",)
+	jobs = ("Python",)
 	formData = {"first":"false","pn":"1","kd":"Python"}
-	for city in cities:
-		queryParameters = {"px":"default","city":city,"needAddtionalResult":"false"}
-		thread = threading.Thread(target=startWork,args=(formData,queryParameters))
-		thread.start()
-		
+	for job in jobs:
+		formData = {"first":"false","pn":"1","kd":job}
+		for city in cities:
+			queryParameters = {"px":"default","city":city,"needAddtionalResult":"false"}
+			thread = threading.Thread(target=startWork,args=(formData,queryParameters))
+			thread.start()
