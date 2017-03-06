@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 import requests
+import threading
 from sqlalchemy import Column, String,Integer,Text,create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-
 """
 职位分析
 请求地址：
@@ -41,27 +41,6 @@ class Job(Base):
     businessZones = Column(Text,)
     financeStage = Column(Text,)
     companyLabelList = Column(Text,)
-
-
-
-def requestContentByGet():
-	"""通过Get方式请求内容"""
-	try:
-		req = requests.get(url,headers=headers)
-		content = req.text
-	except RequestException as e:
-		print(e)
-	return content
-
-def requestContentByPost(formData,queryParameters):
-	"""通过Post方式请求内容"""
-	try:
-		req = requests.post(url,headers=headers,params=queryParameters,data=formData)
-		#print(req.text)
-		content = req.json()
-	except RequestException as e:
-		pass
-	return content
 
 def dictToObject(jobDict):
 	"""把Dict对象转为Job对象"""
@@ -102,9 +81,28 @@ def dictToObject(jobDict):
 				district = district,
 				businessZones = businessZones,
 				financeStage = financeStage,
-				companyLabelList = companyLabelList
-				)
+				companyLabelList = companyLabelList)
 	return job
+
+def requestContentByGet():
+	"""通过Get方式请求内容"""
+	try:
+		req = requests.get(url,headers=headers)
+		content = req.text
+	except RequestException as e:
+		print(e)
+	return content
+
+def requestContentByPost(formData,queryParameters):
+	"""通过Post方式请求内容"""
+	try:
+		req = requests.post(url,headers=headers,params=queryParameters,data=formData)
+		content = req.json()
+	except RequestException as e:
+		pass
+	return content
+
+
 
 def handleResult(result):
 	"""处理返回结果，抽取有用的字段，把信息保存到数据库中"""
@@ -124,18 +122,18 @@ def handleResult(result):
 	finally:
 		session.close()
 	
+def startWork(formData,queryParameters):
+	result = requestContentByPost(formData,queryParameters)
+	handleData = result["content"]["positionResult"]["result"]
+	handleResult(handleData)
 
 
 
 if __name__=="__main__":
-	#result = requestContentByGet("https://www.lagou.com/jobs/list_Android?px=default&city=重庆",headers)
-	#cities = ("北京","上海","深圳","杭州","武汉","重庆")
 	cities = ("北京","重庆")
+	formData = {"first":"false","pn":"1","kd":"Python"}
 	for city in cities:
 		queryParameters = {"px":"default","city":city,"needAddtionalResult":"false"}
-		formData = {"first":"false","pn":"1","kd":"Python"}
-		result = requestContentByPost(formData,queryParameters)
-		handleData = result["content"]["positionResult"]["result"]
-		#print(result["content"]["positionResult"]["totalCount"])#总数据条数
-		#print(result["content"]["positionResult"]["resultSize"])#当前显示多少数据条数
-		handleResult(handleData)
+		thread = threading.Thread(target=startWork,args=(formData,queryParameters))
+		thread.start()
+		
