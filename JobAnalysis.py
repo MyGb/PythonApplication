@@ -33,18 +33,18 @@ class Job(Base):
     salary = Column(String(10))
     workYear = Column(String(10))
     education = Column(String(10))
-    industryField = Column(String(10))
-    companyShortName = Column(String(20))
-    companyFullName = Column(String(30))
-    city = Column(String(10))
+    industryField = Column(String(40))
+    companyShortName = Column(String(100))
+    companyFullName = Column(Text,)
+    city = Column(String(20))
     district = Column(String(20))
-    businessZones = Column(String(20))
-    financeStage = Column(String(10))
-    companyLabelList = Column(String(40))
+    businessZones = Column(Text,)
+    financeStage = Column(Text,)
+    companyLabelList = Column(Text,)
 
 
 
-def requestContentByGet(url,headers):
+def requestContentByGet():
 	"""通过Get方式请求内容"""
 	try:
 		req = requests.get(url,headers=headers)
@@ -64,6 +64,7 @@ def requestContentByPost(formData,queryParameters):
 	return content
 
 def dictToObject(jobDict):
+	"""把Dict对象转为Job对象"""
 	positionName = jobDict["positionName"]
 	salary = jobDict["salary"]
 	workYear = jobDict["workYear"]
@@ -73,15 +74,23 @@ def dictToObject(jobDict):
 	companyFullName = jobDict["companyFullName"]
 	city = jobDict["city"]
 	district = jobDict["district"]
+
 	businessZones = ""
 	if jobDict["businessZones"]:
 		for bz in jobDict["businessZones"]:
-			businessZones = businessZones + bz.strip() + "/"
+			businessZones = businessZones + bz.strip()
+			if bz != jobDict["businessZones"][-1]:
+				businessZones = businessZones + "/"
+
 	financeStage = jobDict["financeStage"]
+
 	companyLabelList = ""
 	if jobDict["companyLabelList"]:
 		for label in jobDict["companyLabelList"]:
-			companyLabelList = companyLabelList+label.strip()+"/"
+			companyLabelList = companyLabelList+label.strip()
+			if label != jobDict["companyLabelList"][-1]:
+				companyLabelList = companyLabelList + "/"
+				
 	job = Job(positionName = positionName,
 				salary = salary,
 				workYear = workYear,
@@ -127,7 +136,6 @@ if __name__=="__main__":
 		formData = {"first":"false","pn":"1","kd":"Python"}
 		result = requestContentByPost(formData,queryParameters)
 		handleData = result["content"]["positionResult"]["result"]
-		print(result["content"]["positionResult"]["totalCount"])#总数据条数
-		print(result["content"]["positionResult"]["resultSize"])#当前显示多少数据条数
+		#print(result["content"]["positionResult"]["totalCount"])#总数据条数
+		#print(result["content"]["positionResult"]["resultSize"])#当前显示多少数据条数
 		handleResult(handleData)
-
