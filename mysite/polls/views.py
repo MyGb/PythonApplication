@@ -1,6 +1,5 @@
-from django.http import HttpResponse
+from django.http import HttpResponse,JsonResponse
 from django.core import serializers
-import json
 from .models import Job
 # Create your views here.
 
