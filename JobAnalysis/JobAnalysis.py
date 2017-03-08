@@ -86,19 +86,6 @@ def dictToObject(jobDict):
 				companyLabelList = companyLabelList)
 	return job
 
-def requestContentByPost(formData,queryParameters):
-	"""通过Post方式请求内容"""
-	try:
-		req = requests.post(url,headers=headers,params=queryParameters,data=formData)
-		if req.status_code == 200:
-			content = req.json()
-	except RequestException as e:
-		pass
-	else:
-		return content
-
-
-
 def handleResult(result):
 	"""处理返回结果，抽取有用的字段，把信息保存到数据库中"""
 	try:
@@ -117,18 +104,28 @@ def handleResult(result):
 	finally:
 		session.close()
 
+def requestContentByPost(formData,queryParameters):
+	"""通过Post方式请求内容"""
+	try:
+		req = requests.post(url,headers=headers,params=queryParameters,data=formData)
+		if req.status_code == 200:
+			content = req.json()
+	except RequestException as e:
+		pass
+	return content
+
 def work(formData,queryParameters):
 	result = requestContentByPost(formData,queryParameters)
-	if !result:
+	if not result:
 		return
 	handleData = result["content"]["positionResult"]["result"]
 	thread = threading.Thread(target=handleResult,args=(handleData,))
 	thread.start()
 	return result
-	
+
 def startWork(formData,queryParameters):
 	result = work(formData,queryParameters)
-	if !result:
+	if not result:
 		return
 	totalCount = result["content"]["positionResult"]["totalCount"] #总记录条数
 	resultSize = result["content"]["positionResult"]["resultSize"] #每页显示数
@@ -141,8 +138,6 @@ def startWork(formData,queryParameters):
 		tempFormData = {"first":"false","pn":str(pn),"kd":"Python"}
 		thread = threading.Thread(target=work,args=(tempFormData,queryParameters))
 		thread.start()
-
-
 
 if __name__=="__main__":
 	#"北京","重庆","Android","java"
