@@ -2,9 +2,10 @@
 #-*- coding: utf-8 -*-
 import requests
 import threading
-from sqlalchemy import Column, String,Text,Integer,create_engine
+from requests import RequestException
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, String,Text,Integer,create_engine
 
 """
 职位分析
@@ -89,10 +90,12 @@ def requestContentByPost(formData,queryParameters):
 	"""通过Post方式请求内容"""
 	try:
 		req = requests.post(url,headers=headers,params=queryParameters,data=formData)
-		content = req.json()
+		if req.status_code == 200:
+			content = req.json()
 	except RequestException as e:
 		pass
-	return content
+	else:
+		return content
 
 
 
@@ -116,6 +119,8 @@ def handleResult(result):
 
 def work(formData,queryParameters):
 	result = requestContentByPost(formData,queryParameters)
+	if !result:
+		return
 	handleData = result["content"]["positionResult"]["result"]
 	thread = threading.Thread(target=handleResult,args=(handleData,))
 	thread.start()
@@ -123,6 +128,8 @@ def work(formData,queryParameters):
 	
 def startWork(formData,queryParameters):
 	result = work(formData,queryParameters)
+	if !result:
+		return
 	totalCount = result["content"]["positionResult"]["totalCount"] #总记录条数
 	resultSize = result["content"]["positionResult"]["resultSize"] #每页显示数
 	if totalCount == resultSize:
@@ -138,7 +145,8 @@ def startWork(formData,queryParameters):
 
 
 if __name__=="__main__":
-	cities = ("重庆",)
+	#"北京","重庆","Android","java"
+	cities = ("上海",)
 	jobs = ("Python",)
 	formData = {"first":"false","pn":"1","kd":"Python"}
 	for job in jobs:
