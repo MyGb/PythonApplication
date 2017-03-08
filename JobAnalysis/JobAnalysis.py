@@ -141,7 +141,7 @@ def startWork(formData,queryParameters):
 
 if __name__=="__main__":
 	#"北京","重庆","Android","java"
-	cities = ("上海",)
+	cities = ("重庆",)
 	jobs = ("Python",)
 	formData = {"first":"false","pn":"1","kd":"Python"}
 	for job in jobs:
